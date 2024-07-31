@@ -17,7 +17,9 @@ In the project's root execute
 pip install -r requirements.txt
 ```
 
-### 4. Run the script:
+### 4. Add Degirum token to `env.ini`
+
+### 5. Run the script:
 In the project's `code` folder execute
 ```
 python object_detection_video_stream.py
