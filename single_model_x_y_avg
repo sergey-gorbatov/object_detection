@@ -1,0 +1,57 @@
+import yaml
+import argparse
+import degirum as dg
+import degirum_tools
+import time 
+
+if __name__ == "__main__":
+    # Get configuration data from configuration yaml file
+    config_yaml = "object_detection_video_stream.yaml"
+    with open(config_yaml, "r") as file:
+        config_data = yaml.safe_load(file)
+
+    # Set all config options
+    hw_location = config_data["hw_location"]
+    model_zoo_url = config_data["model_zoo_url"]
+    model_name = config_data["model_name"]
+    video_source = config_data["video_source"]
+
+    # load object detection AI model
+    model = dg.load_model(
+        model_name=model_name,
+        inference_host_address=hw_location,
+        zoo_url=model_zoo_url,
+        token=degirum_tools.get_token(),
+    )
+
+# run AI inference on video stream
+inference_results = degirum_tools.predict_stream(model, video_source)
+
+# display inference results
+# Press 'x' or 'q' to stop
+frame = 0
+cnt = 0 
+with degirum_tools.Display("AI Camera") as display:
+    for inference_result in inference_results:    
+        while cnt <= 100:
+            frame += 1
+            print(f"======= frame {frame} =======")
+            for i, result in enumerate(inference_result.results):
+                if result['label'] == "person":
+                    bbox = result['bbox']
+                    label = result['label']
+                    score = result['score']
+                    #print(f"object {i} ---> label: {label} score: {score}  bbox: {bbox}")
+                    
+                    #pull individual variables from the bbox list of coordinates
+                    x1 = bbox[0] 
+                    y1 = bbox[1]
+                    x2 = bbox[2]
+                    y2 = bbox[3]
+
+                    x_m = int((x2+x1)/2) #find midpoint on X axis
+                    y_m = int((y2+y1)/2) #find midpoint on Y axis
+
+            cnt += 1
+            print(x_m, y_m) 
+        display.show(inference_result)       
